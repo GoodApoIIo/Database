@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Films</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-5">
+  <h1>Films</h1>
+  <table class="table table-bordered table-striped mt-3">
+    <thead>
+    <tr>
+      <th>ID</th>
+      <th>Title</th>
+      <th>Description</th>
+      <th>Genre</th>
+      <th>Publication Date</th>
+      <th>Popularity Score</th>
+      <th>Created At</th>
+      <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="film : ${films}">
+      <td th:text="${film.id}"></td>
+      <td th:text="${film.title}"></td>
+      <td th:text="${film.description}"></td>
+      <td>
+            <span th:each="genre : ${genres}"
+                  th:if="${film.genreId == genre.id}"
+                  th:text="${genre.name}">
+                    </span>
+      </td>
+      <td th:text="${film.publicationDate}"></td>
+      <td th:text="${film.popularityScore}"></td>
+      <td th:text="${film.createdAt}"></td>
+      <td>
+        <a th:href="@{/films/edit/{id}(id=${film.id})}" class="btn btn-primary btn-sm">Edit</a>
+        <button class="btn btn-danger btn-sm delete-btn"
+                th:data-id="${film.id}">Delete</button>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+
+  <h2 class="mt-5">Add a new film</h2>
+  <form id="addFilmForm" method="post" th:action="@{/films}" th:object="${film}">
+    <div class="mb-3">
+      <label for="title" class="form-label">Title</label>
+      <input type="text" class="form-control" id="title" th:field="*{title}">
+    </div>
+    <div class="mb-3">
+      <label for="description" class="form-label">Description</label>
+      <textarea class="form-control" id="description" th:field="*{description}"></textarea>
+      <div class="text-danger" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></div>
+    </div>
+    <div class="mb-3">
+      <label for="genreId" class="form-label">Genre</label>
+      <select class="form-control" id="genreId" th:field="*{genreId}">
+        <option value="">Select Genre</option>
+        <option th:each="genre : ${genres}" th:value="${genre.id}" th:text="${genre.name}"></option>
+      </select>
+      <div class="text-danger" th:if="${#fields.hasErrors('genreId')}" th:errors="*{genreId}"></div>
+    </div>
+    <div class="mb-3">
+      <label for="publicationDate" class="form-label">Publication Date</label>
+      <input type="date" class="form-control" id="publicationDate" th:field="*{publicationDate}" required
+             max="9999-12-31">
+      <div class="text-danger" th:if="${#fields.hasErrors('publicationDate')}" th:errors="*{publicationDate}"></div>
+    </div>
+    <div class="mb-3">
+      <label for="popularityScore" class="form-label">Popularity Score</label>
+      <input type="number" step="0.1" class="form-control" id="popularityScore" th:field="*{popularityScore}">
+      <div class="text-danger" th:if="${#fields.hasErrors('popularityScore')}" th:errors="*{popularityScore}"></div>
+    </div>
+    <button type="submit" class="btn btn-success">Add Film</button>
+  </form>
+  <div class="mb-3">
+    <button onclick="performComplexOperation()" class="btn btn-warning">Perform Complex Operation</button>
+  </div>
+  <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('.delete-btn').forEach(function(button) {
+          button.addEventListener('click', function() {
+              const filmId = this.getAttribute('data-id');
+              if (confirm("Are you sure you want to delete this film?")) {
+                  fetch(`/films/delete/${filmId}`, {
+                      method: 'DELETE'
+                  }).then(response => {
+                      if (response.ok) {
+                          location.reload();
+                      } else {
+                          alert('Failed to delete the film.');
+                      }
+                  });
+              }
+          });
+      });
+  });
+
+  function performComplexOperation() {
+      fetch('/films/complex-operation', {
+          method: 'POST'
+      }).then(response => {
+          if (response.ok) {
+              alert('Complex operation performed successfully.');
+              location.reload();
+          } else {
+              alert('Failed to perform complex operation.');
+          }
+      });
+  }
+</script>
+</body>
+</html>
